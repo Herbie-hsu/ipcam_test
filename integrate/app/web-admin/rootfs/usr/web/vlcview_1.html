@@ -1,0 +1,491 @@
+<head>
+<!--<link rel="stylesheet" href="/include/jquery-ui.min.css">	
+<script language="javascript" src="/include/jquery-1.10.2.min.js"> </script>
+<script language="javascript" src="/include/jquery-ui.min.js"> </script>
+-->
+<link rel="stylesheet" href="/include/jquery-ui.min.css">	
+<script language="javascript" src="/include/jquery-1.10.2.min.js"> </script>
+<script language="javascript" src="/include/jquery-ui.min.js"> </script>
+<script src="/include/jquery.cookie.js" type="text/javascript"></script>
+<style>
+ {
+ font-family:Trebuchet Ms, Arial;
+ font-size:12px;
+ }
+ from, select, input {
+	border:1px solid silver;
+<!--	margin: 0px; 
+	padding: 0px;-->
+ }
+ div #radio_zoom{font-size: 50.0%;}
+ .btn{width:50px; height:20px; background-color:#006699;}
+</style>
+
+<script language="javascript" src="/include/VLCobject.js"> </script>
+<script language="javascript" src="/include/VLCcontrols.js"> </script>
+<script language="javascript" src="/include/whereisaxvlc.js"> </script>
+<LINK href="/nb.css" rel=stylesheet type=text/css>
+<script type="text/javascript">
+    $(document).ready(function () {
+
+    });
+</script>
+<script type="text/javascript">
+	var twowayaudio_running=false;
+	var ip = window.location.hostname;
+	var audiovalue=0;
+	var ret=-1;
+	function twowayaudio_change(){
+		var select_value = document.getElementById("twowayaudio_select").value;
+		var twowayaudio=document.getElementById("WinAudio");
+		if(select_value=="off"){
+			twowayaudio.Close_js();
+			hidden_mic(true);
+		}
+		else{
+			ret=twowayaudio.Open_js_ret(ip);
+			if(ret==-1){
+				alert(LV_TW_AUDIO_ERROR);
+				document.getElementById("twowayaudio_select").value="off";
+				return;
+			}
+			twowayaudio.Set_status_js(0);
+			hidden_mic(false);
+		}
+		$.cookie("twowayaudio_status", $(this).val(), { expires: 365 * 2 });//save twowayaudio status to cookie
+	}
+	window.onunload = function(){
+		var twowayaudio=document.getElementById("WinAudio");
+		//if(twowayaudio_running!=false)
+			twowayaudio.Close_js();
+		//twowayaudio_running=false;
+		if(recording_flag)
+			document.getElementById("recording").click(); //stop recording;
+	}
+	//mymovie.audio.volume = 0;
+function checkPathIsWirte(path)
+{
+	var num = 0;
+	var strFile = path + "\\__vlc_write_test_" ;
+	var fso = new ActiveXObject("Scripting.FileSystemObject");
+	var objStream;	
+	while(1)
+	{
+		var strFile = strFile + "_" + num.toString();
+		if (fso.FileExists(strFile) == true) 
+		{
+			num = num + 1;
+			//alert(num);
+			if(num > 10)
+				break;				
+		}
+		else
+			break;	
+	}
+	try{
+		objStream = fso.OpenTextFile(strFile, 2, true, false);	
+   		objStream.WriteLine("for vlc write test!");
+   		objStream.Close();
+		var f = fso.GetFile(strFile);
+   		f.Delete();
+		return true;			
+	}
+	catch(e)
+	{
+		alert(LV_ALERT + " '" + path + "'");
+		return false;
+	}	
+}
+
+var SAVE_PATH="D:\\";   //record path
+function BrowseFolder(){ 
+
+   var Folder = DemoCtrl.getpathname();
+    var newstr = new String(Folder);
+   if(newstr.length != 0)
+   {
+   		if(checkPathIsWirte(Folder) == true)
+			document.getElementById("savePath").value=Folder;//savePath��ָ����Ŀؼ�id�� 
+		
+   }
+   	
+
+}
+var playing_flag=false;
+var recording_flag=false;
+function record_change()
+{
+	recording_flag=!recording_flag;
+	if(recording_flag)
+	{
+		document.getElementById("recording").src="/axis_recording_stop.PNG";
+		$('#rec_info').text(',' + LV_Recording);
+	}
+	else
+	{
+		document.getElementById("recording").src="/axis_recording_start.PNG";
+		$('#rec_info').text("");
+	}
+}
+function priority()
+{
+		if(prio > 0)
+		{
+			var con=document.getElementsByName("controlptz");
+			for(var i=0;i<con.length;i++)
+			{
+				con[i].setAttribute("disabled","disabled");
+			}
+			document.getElementById('twowayaudio_select').setAttribute("disabled","disabled");
+			document.getElementById('if_mute_mic').setAttribute("disabled","disabled");
+			document.getElementById('micVolDown').setAttribute("disabled","disabled");
+			document.getElementById('micVolUp').setAttribute("disabled","disabled");
+			document.getElementById('if_mute_spk').setAttribute("disabled","disabled");
+			document.getElementById('spkVolDown').setAttribute("disabled","disabled");
+			document.getElementById('spkVolUp').setAttribute("disabled","disabled");			
+		}
+
+}
+$(document).ready(function(){
+	setInterval(function(){
+			getSystemClock()
+		},1000);
+	
+	$('#select_stream').change(function ()
+	{
+		var value = $(this).val();
+		var date  = Date().toString();
+		var data = {streamNum: value, date: date};
+		$.getJSON('/cgi-bin/getstreaminfo.cgi', data, processStreamInfo);
+		return false;
+	});
+    	$("#radio_zoom").buttonset();
+	$("#radio_zoom").change(function(){
+		var value = $('input[type=radio]:checked').val();
+		if( value == "auto")
+		{
+			var width = 640;
+			var height = 480;
+		}
+		else
+		{
+			var array=$('#res_info').text().split("X");
+			width = array[0];
+			height = array[1];	
+			width = width * parseFloat(value);
+			height = height * parseFloat(value);						
+		}
+		if(navigator.appName.indexOf("Microsoft Internet Explorer") != -1)
+		{
+			$('#mymovie').width(width);
+			$('#mymovie').height(height);
+		}else
+		{
+			$('embed#mymovie').width(width);
+			$('embed#mymovie').height(height);
+		}
+		
+		//$('embed').attr("width",width);
+		//$('embed').atrr("height",height);		
+		//document.getElementById('mymovie').style.width=width;
+		//document.getElementById('mymovie').style.height=height;
+	});
+	
+    $("#twowayaudio_select").change(twowayaudio_change);
+    var twowayaudio_status = $.cookie("twowayaudio_status"); //get twowayaudio status from cookie
+    document.getElementById("WinAudio").Set_server_port_js(twy_port);
+    if (twowayaudio_status == "on") {//if the cookie is 'on', turn on twowayaudio
+        $("#twowayaudio_select").val("on").change();
+    }
+    else if (twowayaudio_status == "off") {//if the cookie is 'off', turn off twowayaudio
+        $("#twowayaudio_select").val("off").change();
+    }
+    else {//if first can't find the cookie ,create cookie for twowayaudio and set it as 'off'
+        $.cookie("twowayaudio_status", "off", { expires: 365 * 2 });
+	 hidden_mic(true);
+    }	
+});
+function processSystemDate(dt, status){
+	$('#date_info').text(dt.date);
+}	
+function getSystemClock()
+{
+	$.getJSON('/cgi-bin/getsystime.cgi?t=' + new Date() , null, processSystemDate);
+}
+function processStreamInfo(data, status)
+{
+	$('#codec_info').text(data.codec.toUpperCase());
+	$('#res_info').text(data.res.toUpperCase());
+	stream=data.url;
+	init();
+}
+function hidden_mic(value)
+{
+	if(value == true)
+	{
+		$('.mic_ctr').fadeTo('normal', 0.75).attr("disabled","disabled");
+		//alert("hide")
+	}
+	else
+	{
+		$('.mic_ctr').fadeTo('normal', 1).removeAttr("disabled","");
+		//alert("show");
+	}
+}
+function init_page()
+{
+	var value = $('#select_stream').val();
+	var data = {streamNum: value};
+	var date  = Date().toString();
+	var data = {streamNum: value, date: date};
+	$.getJSON('/cgi-bin/getstreaminfo.cgi', data, processStreamInfo);
+	//hidden_mic(true);
+	$('.label1 > span').text(LV_Auto);	
+}
+
+</script>
+</head>
+
+<body onload="init_page();priority();">
+<table border="0" width="100%"  class="White">
+<tr>
+	<td width="70%" valign="right">
+		<table border="0" cellpadding="0" cellspacing="0"  class="White">
+			<tr>
+				<td>
+					<table border="0" cellpadding="0" cellspacing="0"  style="background-color:000000;margin-bottom:5px">
+						<tr>
+							<td width="160"><span id="date_info" style="color:white;font-weight:bold;"></span></td>
+							<td width="160"><span id="codec_info" style="color:white;font-weight:bold;"></span></td>
+							<td width="160"><span id="res_info" style="color:white;font-weight:bold;"></span></td>
+							<td width="160"><span id="status_info" style="color:white;font-weight:bold;"></span><span id="rec_info" style="color:white;font-weight:bold;"></span></td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<script>document.write(AxvlcObject);</script>
+					<OBJECT ID="WinAudio" codebase = "ftp://inftp_sa3:sa3@inftp.sonix.com.tw/Audio.CAB#version=1,2,0,2" WIDTH=1	HEIGHT=1 CLASSID="CLSID:95B53B73-59BB-4842-AD24-AC7C7FAE50A7"></OBJECT>
+					<OBJECT ID="DemoCtrl" WIDTH=0 HEIGHT=0 codebase="/local_dir_setup.CAB"  classid="CLSID:7BF97DC0-AAC9-48E8-BC9C-7EF96CD8B6FB">
+					</OBJECT>
+				</td>				
+			</tr>	
+				<td>
+					<table border="0" class="White" cellpadding="0" cellspacing="0"  style="margin-top:5px">
+						<tr>
+							<td>
+								<div id="radio_zoom">
+				                <input type="radio" id="radio1" name="radio_zoom" value="auto" checked="checked">
+				                <label for="radio1" class="label1">
+									Auto
+				                </label>
+				                <input type="radio" id="radio2" name="radio_zoom" value="0.25">
+				                <label for="radio2">
+				                    25%
+				                </label>
+				                <input type="radio" id="radio3" name="radio_zoom" value="0.5">
+				                <label for="radio3">
+				                    50%
+				                </label>
+				                <input type="radio" id="radio4" name="radio_zoom" value="1">
+				                <label for="radio4">
+				                    100%
+				                </label>
+				                <input type="radio" id="radio5" name="radio_zoom" value="2">
+				                <label for="radio5">
+				                    200%
+				                </label>
+				                <input type="radio" id="radio6" name="radio_zoom" value="4">
+				                <label for="radio6">
+				                    400%
+				                </label>								
+            					</div>
+							</td>					
+						</tr>
+					</table>	
+				</td>
+			</tr>
+		</table>
+	</td>
+	
+	<td width="30%" valign="center">
+	<table border="0" class="White">
+	<col align="left" width="144"/>
+	<col align="left" width="144"/>
+		<tr class="mic_ctr">
+			<td>
+				<nobr>&nbsp;
+				<script>document.write(LV_Microphone_volume);</script>
+				</nobr>
+			</td>
+		</tr>
+		<tr class="mic_ctr">
+			<td>
+				<table class="White mic_ctr">
+				<tr>
+					<td>
+						&nbsp;<img class="mic_ctr"  id="if_mute_mic" name="if_mute_mic" width="25" height="25" src="/icon/mic_on.gif" onclick="press_mic_mute()">
+					</td>
+					<td>
+						<input class="mic_ctr" id="micVolDown" type=button value="-" onclick="mic_volume_down()"><span class="mic_ctr" style="width:30px"><span id='mic_vol' class="mic_ctr" >50</span>%</span><input class="mic_ctr" id="micVolUp" type=button value="+" onclick="mic_volume_up()">
+						<script>document.getElementById("mic_vol").innerHTML = mic_vol;var ifmute_mic=true;if(mic_vol != 0) ifmute_mic=false;</script>
+					</td>
+				</tr>
+				</table>
+				
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<nobr>&nbsp;
+				<script>document.write(LV_Speaker_volume);</script>
+				</nobr>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<table class="White">
+				<tr>
+					<td>
+						&nbsp;<img id="if_mute_spk" name="if_mute_spk" width="25" height="25" src="/icon/spk_on.gif" onclick="press_spk_mute()">
+					</td>
+					<td>
+				<input id="spkVolDown" type=button value="-" onclick="spk_volume_down();"><span style="width:30px"><span id='spk_vol'>50</span>%</span><input id="spkVolUp" type=button value="+" onclick="spk_volume_up();">
+				<script>document.getElementById("spk_vol").innerHTML = spk_vol;var ifmute_spk=true;if(spk_vol != 0) ifmute_spk=false;</script>
+					</td>
+				</tr>
+				</table>
+			</td>
+			<td>
+				&nbsp;
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<nobr>&nbsp;
+				<script>document.write(LV_TwoWayAudio);</script>
+				</nobr>
+			</td>
+			<td>
+				&nbsp;
+			</td>
+		</tr>
+		<tr>
+			<td>
+				&nbsp;
+				<select id="twowayaudio_select" style="width:80px">
+				<option id="t_full_duplex" value="on">ON</option>
+				<option id="t_default" value="off" selected="selected">OFF</option>	
+				<script>document.getElementById("t_full_duplex").innerText=LV_ON;document.getElementById("t_default").innerText=LV_OFF;</script>
+				</select>
+			</td>
+			<td>
+				&nbsp;
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2">
+				<hr>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2">
+				<nobr>&nbsp;
+				<img src="/axis_play.PNG" width="28" height="28" onmouseenter="this.src='/axis_play_over.png';" onmouseleave="this.src='/axis_play.PNG';" onmousedown="this.src='/axis_play_deep.png';" onmouseup="this.src='/axis_play.PNG';" onclick="vlc_init();" title="play" alt="play button">
+				<img src="/axis_stop.PNG" width="28" height="28" onmouseenter="this.src='/axis_stop_over.png';" onmouseleave="this.src='/axis_stop.PNG';" onmousedown="this.src='/axis_stop_deep.png';" onmouseup="this.src='/axis_stop.PNG';" onclick='vlc_stop();' title="stop" alt="stop button">
+				<img src="/axis_snapshot.PNG" width="28" height="28"  onmouseenter="this.src='/axis_snapshot_over.png';" onmouseleave="this.src='/axis_snapshot.PNG';"  onmousedown="this.src='/axis_snapshot_deep.png';" onmouseup="this.src='/axis_snapshot.PNG';" onclick='vlc_snapshot(document.getElementById("savePath").value);' title="snapshot" alt="snapshot button">
+				<img src="/axis_fullscreen.PNG" width="28" height="28"  onmouseenter="this.src='/axis_fullscreen_over.png';" onmouseleave="this.src='/axis_fullscreen.PNG';"   onmousedown="this.src='/axis_fullscreen_deep.png';" onmouseup="this.src='/axis_fullscreen.PNG';" onclick='vlc_fullscreen();' title="fullscreen" alt="fullscreen button">
+				<img src="/axis_recording_start.PNG" id="recording" width="28" height="28"  onmouseenter="if(recording_flag) this.src='/axis_recording_stop_over.png';else this.src='/axis_recording_start_over.png';" onmouseleave="if(recording_flag) this.src='/axis_recording_stop.PNG';else this.src='/axis_recording_start.PNG'" "  onclick='vlc_record(document.getElementById("savePath").value);' title="record" alt="record button">				
+				</nobr>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<nobr>&nbsp;
+				<script>document.write(LV_Stream_source);</script>
+				</nobr>
+			</td>
+			<td>
+			<!--	<script>document.write(LV_Show_motion_area);</script> -->
+			</td>			
+		</tr>
+		<tr>
+			<td>
+				&nbsp;
+				<select id="select_stream" name="select_stream" style="width:80px" >
+					<option id="stream1" value="stream1">Stream1</option>
+					<option id="stream2" value="stream2">Stream2</option>
+					<option id="stream3" value="stream3">Stream3</option>
+				<script>document.getElementById("stream1").innerText=LV_Stream1;document.getElementById("stream2").innerText=LV_Stream2;document.getElementById("stream3").innerText=LV_Stream3;</script>
+				</select>
+			</td>
+			<td>
+		<!--		<select name="show_motion" onchange="" style="width:80px" >
+					<option id="show_motion_on" value="on">ON</option>
+					<option id="show_motion_off" value="off">OFF</option>
+				<script>document.getElementById("show_motion_on").innerText=LV_ON;document.getElementById("show_motion_off").innerText=LV_OFF;</script>
+				</select>
+		-->		
+			</td>			
+		</tr>
+		<tr>
+			<td>
+				<nobr>&nbsp;
+				<script>document.write(LV_Protocol);</script>
+				</nobr>
+			</td>
+			<td>
+				&nbsp;
+			</td>			
+		</tr>
+		<tr>
+			<td>
+				&nbsp;
+				<select id="stream_protocol" name="stream_protocol" onchange="demultiplexer_setting(this.value);" style="width:80px" >
+					<option value="1">UDP</option>
+					<option value="2">TCP</option>
+					<option value="3">HTTP</option>
+				</select>
+			</td>
+			<td>
+				&nbsp;
+			</td>			
+		</tr>
+		<tr>
+			<td colspan="2">
+				<nobr>&nbsp;
+				<script>document.write(LV_Record_path_set);</script>
+				</nobr>
+			</td>
+		</tr>
+		<tr>
+		<tr>
+			<td colspan="2">
+				<nobr>&nbsp;
+				<input type="text" id="savePath" name="savePath" readonly="true"/>
+				<script>document.getElementById("savePath").value=SAVE_PATH;</script>
+				<input type="button" id="path_browse" onclick="BrowseFolder()" value="Browse..."/>
+				<script>document.getElementById("path_browse").value=LV_Browse;</script>
+				</nobr>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2">
+				&nbsp;
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2">
+				&nbsp;
+			<input type = 'file' id="browse_file" name = 'browse_file' style = 'display:none'>
+			</td>
+		</tr>
+		
+	</table>
+
+	</td>
+</tr>
+</table>
+<iframe id="volcontrol" width="0" height="0" src="" style="display:none;"></iframe>	
+</body>

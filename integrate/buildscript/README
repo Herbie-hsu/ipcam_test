@@ -1,0 +1,14 @@
+# Compile Steps.
+
+# Step 1. set default settings
+# For BBCAM 
+#make sn98360_bbcam_238_defconfig
+# For IPCAM
+make sn98360_ipcam_188_defconfig
+
+# Step 2. Run make
+make
+
+# Step 3. Run make install
+make install
+

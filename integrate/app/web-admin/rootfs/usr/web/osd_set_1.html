@@ -1,0 +1,367 @@
+<script language="javascript" src="/include/jquery-1.10.2.min.js"> </script>
+<script src="/include/js/colpick.js" type="text/javascript"></script>
+<link rel="stylesheet" href="/colpick.css" type="text/css"/>	
+<script language="JavaScript">
+var	startx=osd_startx;
+var starty=osd_starty;	
+var needUpdate=false;
+var RECT_WIDTH=400;
+var RECT_HEIGHT=300;
+
+function callColorDlg(sInitColor)
+{
+	if (sInitColor == null) 
+		var sColor = dlgHelper.ChooseColorDlg();
+	else 
+		var sColor = dlgHelper.ChooseColorDlg(sInitColor);
+	sColor = sColor.toString(16);
+	if (sColor.length < 6) {
+		var sTempString = "000000".substring(0, 6 - sColor.length);
+		sColor = sTempString.concat(sColor);
+	}
+	sColor = "#".concat(sColor).toUpperCase();
+	return sColor;
+}
+function txt_color(initcolor)
+{
+	if(navigator.appName.indexOf("Microsoft Internet Explorer") != -1){
+		var ret  =  callColorDlg(initcolor);
+		document.getElementById('txt_color').style.backgroundColor=ret;
+		var txt_color=document.getElementById('txt_color').style.backgroundColor;	
+		var data = {op:"action", type:"change_txt_color", txt_color:"0x"+txt_color.substring(1,txt_color.length)};
+		$.getJSON('/cgi-bin/osd_setting.cgi?t=' + new Date() , data, null);			
+	}else{
+		$('.color-box-txt').click();
+	}
+	
+}
+function bg_color(initcolor)
+{
+	if(navigator.appName.indexOf("Microsoft Internet Explorer") != -1){
+		var ret  =  callColorDlg(initcolor);
+		document.getElementById('bg_color').style.backgroundColor=ret;
+		var bg_color=document.getElementById('bg_color').style.backgroundColor;
+		var data = {op:"action", type:"change_bg_color", bg_color:"0x"+bg_color.substring(1,bg_color.length)};
+		$.getJSON('/cgi-bin/osd_setting.cgi?t=' + new Date() , data, null);		
+	}else{
+		$('.color-box-bg').click();
+	}
+			
+}
+$(function(){
+	$('.color-box-txt').colpick({
+		colorScheme:'dark',
+		layout:'rgbhex',
+		color:osd_txt_color,
+		onSubmit:function(hsb,hex,rgb,el) {
+			$('#txt_color').css('background-color', '#'+hex);
+			$(el).colpickHide();
+			var txt_color=$('#txt_color').css('background-color').colorHex();
+			var data = {op:"action", type:"change_txt_color", txt_color:"0x"+txt_color.substring(1,txt_color.length)};
+			$.getJSON('/cgi-bin/osd_setting.cgi?t=' + new Date() , data, null);					
+		}
+	});
+	$('.color-box-bg').colpick({
+		colorScheme:'dark',
+		layout:'rgbhex',
+		color:osd_bg_color,
+		onSubmit:function(hsb,hex,rgb,el) {
+			$('#bg_color').css('background-color', '#'+hex);
+			$(el).colpickHide();
+			var bg_color=$('#bg_color').css('background-color').colorHex();
+			var data = {op:"action", type:"change_bg_color", bg_color:"0x"+bg_color.substring(1,bg_color.length)};
+			$.getJSON('/cgi-bin/osd_setting.cgi?t=' + new Date() , data, null);						
+		}
+	});	
+});	
+function changeTxtTransp()
+{
+	var txt_transp=document.getElementById("txt_transp");
+	var data = {op:"action", type:"change_txt_transp", txt_transp:txt_transp.checked};
+	$.getJSON('/cgi-bin/osd_setting.cgi?t=' + new Date() , data, null);			
+}
+function changeBgTransp()
+{
+	var bg_transp=document.getElementById("bg_transp");	
+	var data = {op:"action", type:"change_bg_transp", bg_transp:bg_transp.checked};
+	$.getJSON('/cgi-bin/osd_setting.cgi?t=' + new Date() , data, null);		
+}
+function location_change(value)
+{
+	data = {op:"action", type:"change_location", location:value};	
+	$.getJSON('/cgi-bin/osd_setting.cgi?t=' + new Date() , data, processData);
+	function processData(data, status)
+	{
+		DI('startX',data.x);
+		DI('startY',data.y);
+		startx=data.x;
+		starty=data.y;
+	}		
+}
+function finetune_change(direction,valuex,valuey)
+{
+	var data = {op:"action", type:"finetune_change", direction:direction, x:valuex, y:valuey};	
+	$.getJSON('/cgi-bin/osd_setting.cgi?t=' + new Date() , data, processData);
+	function processData(data, status)
+	{
+		DI('startX',data.x);
+		DI('startY',data.y);
+		startx=data.x;
+		starty=data.y;
+	}	
+}
+function gainChange(value)
+{
+	var data = {op:"action", type:"change_gain", osd_gain:value};
+	$.getJSON('/cgi-bin/osd_setting.cgi?t=' + new Date() , data, null);	
+	finetune_change('right',0,0);
+	finetune_change('down',0,0);	
+}
+function changeOsd()
+{
+	var enable=document.getElementById("enable");
+	var text=document.getElementById("text");		
+	var timestamp=document.getElementById("timestamp");
+	var data = {op:"action", type:"change_osd_display", enable:enable.checked, text:text.value, timestamp:timestamp.checked};
+	$.getJSON('/cgi-bin/osd_setting.cgi?t=' + new Date() , data, null);	
+	finetune_change('right',0,0);
+	finetune_change('down',0,0);				
+}
+function update_value()
+{
+ osd_enable=document.getElementById("enable").checked;
+ osd_text=document.getElementById("text").value;
+ osd_timestamp=document.getElementById("timestamp").checked;
+ osd_txt_color=document.getElementById('txt_color').style.backgroundColor;
+ osd_bg_color=document.getElementById('bg_color').style.backgroundColor;
+ osd_txt_transp=document.getElementById('txt_transp').checked;
+ osd_bg_transp=document.getElementById('bg_transp').checked;
+ osd_gain=document.getElementById('gain').value;
+ osd_location=document.getElementById('location').value;
+ osd_startx=startx;
+ osd_starty=starty;
+}
+function saveOsd()
+{
+	var cmdurl;
+	var enable=document.getElementById("enable");
+	var text=document.getElementById("text");
+	var timestamp=document.getElementById("timestamp");
+	var txt_color=document.getElementById('txt_color').style.backgroundColor;
+	var bg_color=document.getElementById('bg_color').style.backgroundColor;
+	var txt_transp=document.getElementById("txt_transp");
+	var bg_transp=document.getElementById("bg_transp");
+	var gain=document.getElementById('gain');
+	var startX=startx;
+	var startY=starty;
+	var location=document.getElementById('location');
+
+	cmdurl="/cgi-bin/osd_setting.cgi?op=action"+"&type="+"osd"+"&enable="+enable.checked+"&text="+text.value+"&timestamp="+timestamp.checked+"&txt_color="+"0x"+txt_color.substring(1,txt_color.length)+"&bg_color="+"0x"+bg_color.substring(1,bg_color.length)+"&txt_transp="+txt_transp.checked+"&bg_transp="+bg_transp.checked+"&osd_gain="+gain.value+"&startX="+startX+"&startY="+startY+"&location="+location.value+"&time="+new Date().toString();
+	//alert(cmdurl);
+	document.getElementById("hiddenframe_image").src = cmdurl;
+	update_value();
+}
+function rst()
+{
+	page_init();
+	saveOsd();
+}
+window.onunload=rst;
+</script>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<meta http-equiv="Expires" content="now">
+		<meta http-equiv="Pragma" content="no-cache">
+		<script language="javascript" src="/include/VLCobject.js"> </script>
+		<script language="javascript" src="/include/VLCcontrols.js"> </script>
+		<script language="javascript" src="/include/whereisaxvlc.js"> </script>		
+		<script src="/include/help.js"> </script>
+		<link href="/osd.css" rel=stylesheet type=text/css>
+		<style>
+		.mouse_move{cursor:hand}
+		.hidden
+		{
+			display:none;
+		}
+		</style>
+	</head>
+	<body  onload="osd_init()">
+		<center>
+			<table id="asdf" border=0 cellPadding=0 cellSpacing=0 width=502>
+				<tbody>
+					<tr>
+						<td align=left class=title width=495>
+							<script type='text/javascript'>document.write(OS_TITLE);</script>
+						</td>
+					</tr>
+					<tr>
+						<td colSpan=2>
+							<table border=0 cellPadding=0 cellSpacing=0 className="t_table" width=502>
+								<tbody>
+									<tr>
+										<td class=vline rowSpan=15><br>
+										</td>
+										<td width=500>
+                                        <TABLE name="osd_table" border="0" align="center" cellpadding="0" cellspacing="5" width=400>
+                                            <col align="left" width="25%"/>
+											<col align="left" width="25%"/>
+											<col align="left" width="25%"/>
+											<col align="left" width="25%"/>
+                                            <tr>
+                                                <td colspan=4 align="center">
+                                                   	<script>WidthHeight = ' width="400" height="300" ';
+										AxvlcObject = ObjectBegin + AxvlcURL + AxvlcCab + WidthHeight +CloseAngle + EmbedBegin + WidthHeight + EmbedEnd +ObjectEnd;
+										//alert(AxvlcObject);
+										document.write(AxvlcObject);</script>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td align="left" bgcolor="#cccccc" colspan=4>
+                                                    <strong>
+                                                        <script>
+                                                            dw(OS_ENABLE)
+                                                        </script>&nbsp;
+                                                    </strong>
+                                                    <input type="checkbox" id="enable" onclick="changeOsd();">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <script>dw(OS_TEXT)</script>
+                                                </td>
+                                                <td colspan=1>
+                                                    <input type="text" id="text" name="text" maxlength="16" style="width:90px;" onkeyup='changeOsd();'>
+                                                </td>
+                                                <td>
+                                                    <script>dw(OS_TIMESTAMP)</script>
+                                                </td>
+                                                <td>
+                                                    <input type="checkbox" id="timestamp" name="timestamp" onclick='changeOsd();'>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <script>dw(OS_TEXTCOLOR)</script>
+                                                </td>
+                                                <td>
+                                                    <input type="button" id="txt_color" name="txt_color" class="button_color" value="      " onclick="txt_color($('#txt_color').css('background-color').colorHex())">
+                                                    <input type="button" class="color-box-txt" style="visibility:hidden;width:1px;height:1px;padding:0px;margin:0px">
+                                                </td>
+                                                <td>
+                                                    <script>dw(OS_TRANSP)</script>
+                                                </td>
+                                                <td>
+                                                    <input type="checkbox" id="txt_transp" name="txt_transp" onclick='changeTxtTransp();'>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <script>dw(OS_BACKCOLOR)</script>
+                                                </td>
+                                                <td>
+                                                    <input type="button" id="bg_color" name="bg_color" class="button_color" value="      " onclick="bg_color($('#bg_color').css('background-color').colorHex())">
+                                                    <input type="button" class="color-box-bg" style="visibility:hidden;width:1px;height:1px;padding:0px;margin:0px">
+                                                </td>
+                                                <td>
+                                                    <script>dw(OS_TRANSP)</script>
+                                                </td>
+                                                <td>
+                                                    <input type="checkbox" id="bg_transp" name="bg_transp" onclick="changeBgTransp();">
+                                                </td>
+                                            </tr>
+											<tr>
+                                                <td>
+                                                    <script>
+                                                        dw(OS_LOCATION);
+                                                    </script>
+                                                </td>
+                                                <td>
+                                                    <select id="location" name="location" style="width:80px;" onclick="location_change(this.value);">
+                                                        <option id="lefttop" value="lefttop">Left Top</option>
+                                                        <option id="righttop" value="righttop">Right Top</option>
+                                                        <option id="leftbottom" value="leftbottom">Left Bottom</option>
+                                                        <option id="rightbottom" value="rightbottom">Right Bottom</option>
+                                                        <script>
+                                                            DI("lefttop", OS_LEFTTOP);
+                                                            DI("righttop", OS_RIGHTTOP);
+                                                            DI("leftbottom", OS_LEFTBOTTOM);
+                                                            DI("rightbottom", OS_RIGHTBOTTOM);
+                                                        </script>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <script>
+                                                        dw(OS_FINETUNE);
+                                                    </script>
+													<span class="hidden">(</span><span id="startX" class="hidden">0</span><span class="hidden">/400</span><span class="hidden">,</span><span id="startY" class="hidden">0</span><span class="hidden">/300</span><span class="hidden">)</span>
+                                                </td>
+												<td rowspan="2">
+                                                <img src="/osd_direction.gif" border="0" usemap="#osd_direction"/>
+                                                <map name="osd_direction" id="osd_direction">
+                                                    <area class="mouse_move" shape="rect" coords="30,5,49,30" onclick="finetune_change('up',1,1);"alt="up" title="up"/>
+													<area class="mouse_move" shape="rect" coords="30,49,50,74" onclick="finetune_change('down',1,1);"alt="down" title="down"/>
+													<area class="mouse_move" shape="rect" coords="5,30,29,48" onclick="finetune_change('left',1,1);" alt="left" title="left"/>
+													<area class="mouse_move" shape="rect" coords="51,31,93,49" onclick="finetune_change('right',1,1);" alt="right" title="right"/>
+                                                </map>
+												</td>
+											</tr>
+											<tr>
+                                                <td>
+                                                    <script>
+                                                        dw(OS_GAIN)
+                                                    </script>
+                                                </td>
+                                                <td>
+                                                    <select id="gain" name="gain" style="width:80px;" onchange="gainChange(this.value)">
+                                                        <option id="big" value="big">Big</option>
+                                                        <option id="small" value="small">Small</option>
+                                                        <script>
+                                                            DI("big", OS_BIG);
+                                                            DI("small", OS_SMALL);
+                                                        </script>
+                                                    </select>													
+                                                </td>
+												<td>&nbsp;</td>
+                                            </tr>
+											<tr>
+                                                <td colspan=4 align="center">
+                                                    <hr>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan=4 align="center">
+                                                    <input id="save" style="width:70px" type="button" value="Save" onclick="saveOsd()">
+													<input id="reset" style="width:70px" type="button" value="Reset" onclick="rst()">
+												</td>
+                                            </tr>
+                                            <script>
+                                                DV("save", OS_SAVE);
+                                                DV("reset", OS_RESET);
+                                            </script>
+                                            <iframe id="hiddenframe_image" width="0" height="0" src="" style="display:none;">
+                                            </iframe>
+                                            <OBJECT id="dlgHelper" CLASSID="clsid:3050f819-98b5-11cf-bb82-00aa00bdce0b" width="0px" height="0px">
+                                            </OBJECT>
+										</table>
+										</td>
+										<td class=vline rowSpan=15>
+											<br>
+										</td>
+									</tr>
+									<tr>
+										<td class=hline>
+											
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</center>
+	</body>
+</html>
+ 
+

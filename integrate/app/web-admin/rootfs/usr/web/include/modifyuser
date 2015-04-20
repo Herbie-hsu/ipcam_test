@@ -1,0 +1,199 @@
+
+
+
+
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML><HEAD>	<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8"><TITLE>Modify User</TITLE>
+<META HTTP-EQUIV="Expires" CONTENT="now"><META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+<SCRIPT SRC="/include/help.js"></SCRIPT>
+<script src="%s"></script>
+<LINK href="/nb.css" rel=stylesheet type=text/css>
+<!-- GLOBAL JAVASCRIPTS -->
+</head>
+<body class="bodyBg" topmargin="0" leftmargin="0" marginwidth="0" marginheight="0" bgcolor="white" onLoad="window.focus();focusOnFirst()">
+
+<script language="JavaScript">
+<!--
+
+function initControls()
+{
+  var aForm = document.userModifyForm;
+  var myOriginalName = "";
+  var myOriginalGroup = "view";
+  var ptzUser = [];
+  var form = document.userModifyForm;
+   
+  if (myOriginalName != "root") {
+    if (myOriginalName.length > 0) {
+
+      if (myOriginalGroup.toLowerCase().charAt(0) == "a")
+        aForm.sgrp[2].checked = true;
+      else if (myOriginalGroup.toLowerCase().charAt(0) == "o")
+        aForm.sgrp[1].checked = true;
+
+      else
+        aForm.sgrp[0].checked = true;
+    } else {
+      aForm.sgrp[0].checked = true;
+    }
+  }
+  
+
+}
+
+function focusOnFirst()
+{
+  var form = document.userModifyForm;
+
+    form.pwd.focus();
+    form.pwd.select();
+
+}
+
+
+function checkPassword()
+{
+  var form = document.userModifyForm;
+  var aPass1 = form.pwd.value;
+  var aPass2 = form.pwd_confirm.value;
+  var c;
+
+  // Check short password
+  if (aPass1.length < 1) {
+    alert(User_m_passwd_too_short);
+    form.pwd.focus();
+    form.pwd.select();
+    return false;
+  }
+
+  // Check for too long password
+  if (aPass1.length > 8) {
+    alert(User_m_passwd_too_long);
+    form.pwd.focus();
+    form.pwd.select();
+    return false;
+  }
+
+  // Check that the real password is same as the confirm password.
+  if (aPass1 != aPass2) {
+    alert(User_passwd_match_err);
+    form.pwd.focus();
+    form.pwd.select();
+    return false;
+  }
+ 
+  return true;
+}
+
+
+function saveData()
+{
+  var action = "modify";
+  var originalUser = "";
+  var submitForm = document.submitForm;
+  var userForm = document.userModifyForm;
+  var userName = window.opener.document.forms[0].elements[0].value;
+	
+  if (!checkPassword()) {
+     return false;
+  }
+  // Build submitstring
+  submitForm.action.value = action;
+	submitForm.op.value = "user";
+  submitForm.user.value = userName;
+  if (originalUser != "root") {
+    for (i = 0 ; i < 3 ; i++) {
+       if (userForm.sgrp[i].checked) {
+           submitForm.sgrp.value = userForm.sgrp[i].value;
+          break;
+       }
+    }
+
+  }
+  if (userForm.pwd.value.length > 0) {
+   	submitForm.pwd.value = escape(userForm.pwd.value);
+  }
+  submitForm.submit();
+  return false;  
+}
+// -->
+</script>
+
+<form name="userModifyForm" onSubmit="javascript: return saveData();">
+<table border="0" cellpadding="2" cellspacing="0" class="evenItem" width=100%% height=100%%>
+  <tr><td>
+  <table border="0" cellpadding="3" cellspacing="0" class="oddItem" width=100%%>
+    <tr>
+    </tr>
+    <tr><td class="oddItem"><script type="text/javascript">dw(User_username);</script></td><td nowrap class="oddItem">
+    <script laguage="javascript">
+		var elem = window.opener.document.forms[0]
+		var elem2 = elem.elements[0]
+    		document.write(elem2.value)
+    </script>
+    </td>
+    </tr>
+    <tr><td class="evenItem"><script type="text/javascript">dw(User_passwd);</script></td><td class="evenItem"><input type="password" class="fieldName" style="width:120px" maxlength="8" name="pwd"></td></tr>
+    <tr><td nowrap class="oddItem"><script type="text/javascript">dw(User_repasswd);</script></td><td class="oddItem"><input type="password" class="fieldName" style="width:120px" maxlength="8" name="pwd_confirm"></td></tr>
+
+    <tr><td valign="top" class="evenItem"><script type="text/javascript">dw(User_group);</script></td>
+        <td class="evenItem"><input type="radio" id="radio_viewer" name="sgrp" value="snxview" ><script type="text/javascript">dw(User_viewer);</script><br>
+
+            <input type="radio" id="radio_admin" name="sgrp" value="snxadmin:snxoper:snxview"><script type="text/javascript">dw(User_admin);</script>
+        </td></tr>
+
+
+    <tr>
+      <td class="topTitle" align="center" colspan="2">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr>
+            <td class="button"><input type="button" id="okbtn" value="OK" style="width:60px" class="btnNormal" onClick="JavaScript:saveData()"></td>
+            <td class="button">&nbsp;</td>
+            <td class="button"><input type="button" id="cancelbtn" value="Cancel" style="width:60px" class="btnNormal" onClick="window.close()"></td>
+          </tr>
+		  <script type="text/javascript">
+		  	document.getElementById("okbtn").value=User_OK;
+			document.getElementById("cancelbtn").value=User_cancel;
+		  </script>
+        </table>   
+      </td>
+    </tr>
+  </table>
+  </td></tr>
+</table>
+</form>
+
+<form name="submitForm" action="/cgi-bin/sys_user.cgi" method="post">
+<input type="hidden" name="user" value="">
+<input type="hidden" name="action" value="">
+<input type="hidden" name="pwd" value="">
+<input type="hidden" name="sgrp" value="">
+<input type="hidden" name="op" value="">
+</form>
+
+<script language="JavaScript">
+	var i = 0;
+	var obj = window.opener.document.forms[0].elements[0];
+	var selectedText = obj.options[obj.selectedIndex].text;
+	var t = document.userModifyForm.elements["sgrp"];
+	if(selectedText.search(/Administrator/) > 0)
+		t[1].checked = true;
+	else
+		t[0].checked = true;
+	
+	if(elem2.value=="root")
+	{
+		document.getElementById("radio_admin").checked=true;
+		document.getElementById("radio_viewer").disabled="none";
+	}
+</script>
+
+<script language="JavaScript">
+<!--
+//initControls();
+// -->
+</script>
+
+</body>
+</html>

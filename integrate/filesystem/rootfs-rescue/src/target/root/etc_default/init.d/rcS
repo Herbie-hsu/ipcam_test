@@ -1,0 +1,50 @@
+#!/bin/sh
+
+echo "Load drivers..."
+modprobe snx_pwm
+modprobe snx_gpio
+modprobe snx_rtc
+#add green led blink (pwm1 blink)
+/bin/snx_pwm_period 0 500 1000
+#power on sensor ms1_io6
+/bin/gpio_ms1 -n 6 -m 1 -v 1
+
+#modprobe rt5370sta
+modprobe 8188eu
+modprobe snx_aud_core
+modprobe snx_aud_sigma
+modprobe snx_aud_r2r
+modprobe ov971x
+modprobe snx_isp
+modprobe snx_vb2
+modprobe snx_vc snx_vb2=1 snx_percent=0
+modprobe snx_sd
+hwclock -s
+
+# Start all init scripts in /etc/init.d
+# executing them in numerical order.
+#
+for i in /etc/init.d/S??* ;do
+
+     # Ignore dangling symlinks (if any).
+     [ ! -f "$i" ] && continue
+
+     case "$i" in
+	*.sh)
+	    # Source shell script for speed.
+	    (
+		trap - INT QUIT TSTP
+		set start
+		. $i
+	    )
+	    ;;
+	*)
+	    # No sh extension, so fork subprocess.
+	    $i start
+	    ;;
+    esac
+done
+
+# Here start our services
+/etc/init.d/rc.local
+

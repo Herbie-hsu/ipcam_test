@@ -1,0 +1,60 @@
+#!/bin/sh
+
+echo "Load drivers..."
+modprobe snx_gpio
+modprobe snx_pwm
+modprobe snx_rtc
+#add green led blink (pwm1 blink)
+/bin/snx_pwm_period 0 500 1000
+#power on sensor ms1_io6
+/bin/gpio_ms1 -n 6 -m 1 -v 1
+
+#modprobe rt3070sta
+#modprobe rt5370sta
+modprobe 8188eu
+modprobe snx_aud_core
+modprobe snx_aud_sigma
+modprobe snx_aud_r2r
+#modprobe snx_uvc
+modprobe snx_isp
+modprobe snx_vb2
+modprobe snx_vc snx_vb2=1 snx_percent=0
+#modprobe snx_vo
+modprobe snx_sd
+modprobe snx_wdt
+hwclock -s
+
+# Start all init scripts in /etc/init.d
+# executing them in numerical order.
+#
+for i in /etc/init.d/S??* ;do
+
+     # Ignore dangling symlinks (if any).
+     [ ! -f "$i" ] && continue
+
+     case "$i" in
+	*.sh)
+	    # Source shell script for speed.
+	    (
+		trap - INT QUIT TSTP
+		set start
+		. $i
+	    )
+	    ;;
+	*)
+	    # No sh extension, so fork subprocess.
+	    $i start
+	    ;;
+    esac
+done
+
+# Init the memory and mount point that record/snapshot use
+mkdir -p /tmp/record
+#mount -t tmpfs tmpfs /tmp/record -o size=4m
+dd if=/dev/zero of=/tmp/record/record_fs bs=1024 count=4608
+losetup /dev/loop0 /tmp/record/record_fs
+mkfs.ext2 -q /dev/loop0
+mount -t ext2 /dev/loop0 /tmp/record
+
+# Here start our services
+/etc/init.d/rc.local

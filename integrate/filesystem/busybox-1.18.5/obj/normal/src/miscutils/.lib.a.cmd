@@ -1,0 +1,1 @@
+cmd_miscutils/lib.a := rm -f miscutils/lib.a; arm-linux-ar  rcs miscutils/lib.a miscutils/crond.o miscutils/crontab.o miscutils/dc.o miscutils/flash_eraseall.o miscutils/mt.o miscutils/strings.o miscutils/time.o

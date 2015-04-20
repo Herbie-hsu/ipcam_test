@@ -1,0 +1,132 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+<META HTTP-EQUIV="Expires" CONTENT="now">
+<META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+<title>Add IP Address</title>
+<!--<script src="/include/help.js"></script>-->
+<link href="/nb.css" rel=stylesheet type=text/css>
+
+    <script src="/include/jquery-1.10.2.min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        $.get("/cgi-bin/liveview_acl.cgi", "op=get_language", function (data, status) {
+            if (status == "success") {
+                var language = data.match(/\".*\"/).toString().replace(/\"/g, "");
+                $.getScript(language, init_language);
+            }
+        });
+        function init_language() {
+            document.title = LVA_Add_Page_Title;
+            $("#title2").text(LVA_Add_Page_Title);
+            $("#title3").text(LVA_Add_Page_Title);
+            $("#ip_addr").text(LVA_Add_Page_IP);
+            $("#OK").val(LVA_Add_Page_btn_OK);
+            $("#Cancel").val(LVA_Add_Page_btn_Cancel);
+        }
+    </script>
+<script language="JavaScript">
+    function focus_on_first() {
+        var form = document.add_ipaddr_form;
+        form.ip_addr.focus();
+        form.ip_addr.select();
+    }
+
+    function check_repeated_ipaddr(ip) {
+        var ip_list = window.opener.document.forms[0].ip_list;
+        var num = ip_list.length;
+
+        if (num >= 0) {
+            for (var i = 0; i < num; i++) {
+                if (ip_list.options[i].text == ip) {
+                    alert(ip + LVA_Add_Page_existIP_warning);
+                    focus_on_first();
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    function check_valid_ipaddr(ip) {
+        var str = ip;
+        var Expression = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])(\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])){3}$/;
+        var objExp = new RegExp(Expression);
+
+        if (objExp.test(str) == true) {
+            return true;
+        }
+        else {
+            alert(LVA_Add_Page_invalidIP_warning);
+            document.add_ipaddr_form.ip_addr.value = "";
+            focus_on_first();
+            return false;
+        }
+    }
+
+    function submit_form() {
+        var num = window.opener.document.forms[0].ip_list.length;
+
+        if (num >= 10) {
+            alert(LVA_Add_Page_MaxIP_warning);
+            return false;
+        }
+        else {
+            document.add_ipaddr_form.submit();
+        }
+    }
+
+    function save(ip) {
+        if (check_valid_ipaddr(ip) && check_repeated_ipaddr(ip)) {
+            submit_form();
+        }
+    }
+	$(function (){
+    	$("form").submit(function () {
+		save($("[name=ip_addr]").val());
+		return false;
+    		});
+    });
+
+</script>
+</head>
+
+<body onLoad="window.focus();focus_on_first()"><center>
+<table border=0 cellPadding=0 cellSpacing=0 width=502>
+<tbody>
+<tr><td align=left class=title vAlign=center width=495 id="title2"><!--headermsg-->Add IP Address</td></tr>
+<tr><td colSpan=2>
+<table border=0 cellPadding=0 cellSpacing=0  width=502>
+<tbody>
+<tr><td class=vline rowSpan=15><br></td><td width=500>
+<table align=center border="1" align="center" cellpadding="1" cellspacing="1"  class=space width=400>
+<!--infomsg-->
+</table>
+<table align=center border="0" align="center" cellpadding="0" cellspacing="0"  class=space width=400>
+<!--othermsg-->
+
+<form name="add_ipaddr_form" method="post" action="/cgi-bin/liveview_acl.cgi">
+<input type="hidden" name="op" value="add">
+<tr><td align="left" colspan=2 bgcolor="#cccccc">
+<strong id="title3">Add IP Address</strong>
+</td></tr>
+<tr><td>
+<span id="ip_addr">IP address:</span> <input type="text" name="ip_addr" style="width:150px" maxlength="15">
+</td></tr>
+<tr>
+<td></td>
+<td>
+<input type="button" id="OK" style="width:70px" value="OK" onClick="save(ip_addr.value)">&nbsp;
+<input type="button" id="Cancel" style="width:70px" value="Cancel" onClick="window.close()">
+</td>
+</tr>
+</form>
+
+</table>
+
+</td><td class=vline rowSpan=15><br></td></tr><tr><td class=hline></td></tr>
+</tbody></table>
+</td></tr></tbody></table>
+</center></body>
+</html>

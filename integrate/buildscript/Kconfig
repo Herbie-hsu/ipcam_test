@@ -1,0 +1,335 @@
+####################################################
+#
+# The Topest Menu
+#
+####################################################
+
+mainmenu "SONiX SDK Configuration"
+
+####################################################
+#
+# System Configuration
+#
+####################################################
+choice
+	prompt "Platform"
+	default SYSTEM_PLATFORM_SN98601
+
+config SYSTEM_PLATFORM_SN98600
+	bool "SN98600"
+
+config SYSTEM_PLATFORM_SN98601
+	bool "SN98601/SN98360"
+
+config SYSTEM_PLATFORM_SN98610
+    bool "SN98610"
+
+config SYSTEM_PLATFORM_ST58600FPGA
+	bool "FPGA"
+
+endchoice
+
+config RESCUE_SYSTEM
+	bool "rescue system"
+
+config SYSTEM_PREVIOUS_PLATFORM
+	bool "Previous Platform"
+	depends on !SYSTEM_PLATFORM_ST58600FPGA
+	default n
+
+if SYSTEM_PREVIOUS_PLATFORM
+choice
+	prompt "Previous Platform Version"
+	default SYSTEM_E1
+
+config SYSTEM_E1
+	bool "E1"
+endchoice
+
+config SYSTEM_PREVIOUS_VERSION
+	string
+	default "e1"  if SYSTEM_E1
+endif
+
+config SYSTEM_PLATFORM
+	string
+	default "sn98600" if SYSTEM_PLATFORM_SN98600 || SYSTEM_PLATFORM_ST58600FPGA
+    default "sn98610" if SYSTEM_PLATFORM_SN98610
+    default "sn98601" if SYSTEM_PLATFORM_SN98601
+
+config SYSTEM_SERIES
+	string
+	default "sn986xx" if SYSTEM_PLATFORM_ST58600FPGA \
+		|| SYSTEM_PLATFORM_SN98600 || SYSTEM_PLATFORM_SN98610 || SYSTEM_PLATFORM_SN98601 
+####################################################
+#
+# DDR
+#
+####################################################
+choice
+	prompt "DDR"
+	default SYSTEM_DDR_W9751G6KB_32Mx16
+
+
+config SYSTEM_DDR_W9751G6KB_32Mx16
+	 bool "Winbond W9751G6KB 32Mx16" 
+	 
+config SYSTEM_DDR_W9751G6KB_32Mx32
+	 bool "Winbond W9751G6KB 32Mx32" if SYSTEM_PLATFORM_ST58600FPGA
+	 
+if SYSTEM_PLATFORM_SN98610
+config SYSTEM_DDR_W9751G6KB_32Mx32
+	 bool "Winbond W9751G6KB 32Mx32"
+  	 
+config SYSTEM_DDR_W971GG6KB_64Mx16
+	 bool "Winbond W971GG6KB 64Mx16"
+	 
+config SYSTEM_DDR_W971GG6KB_64Mx32
+	 bool "Winbond W971GG6KB 64Mx32"
+
+endif 
+endchoice
+
+
+config DDR_PROJECT
+	string
+	default "w9751g6kb_32x16bit" if SYSTEM_DDR_W9751G6KB_32Mx16
+    default "w9751g6kb_32x32bit" if SYSTEM_DDR_W9751G6KB_32Mx32
+    default "w971gg6kb_64x16bit" if SYSTEM_DDR_W971GG6KB_64Mx16
+    default "w971gg6kb_64x32bit" if SYSTEM_DDR_W971GG6KB_64Mx32
+    
+
+####################################################
+#
+# System PLL
+#
+####################################################
+choice
+	prompt "DDR Freq"
+	default SYSTEM_DDR336MHZ
+
+config	SYSTEM_DDR25MHZ
+	bool "25MHz" if SYSTEM_PLATFORM_ST58600FPGA
+
+if	! SYSTEM_PLATFORM_ST58600FPGA
+config SYSTEM_DDR150MHZ
+	 bool "150MHz"	
+
+config SYSTEM_DDR198MHZ
+	 bool "198MHz"	 	
+
+config SYSTEM_DDR201MHZ
+	 bool "201MHz"	
+
+config SYSTEM_DDR312MHZ
+	 bool "312MHz"	
+
+config SYSTEM_DDR324MHZ
+	 bool "324MHz"	
+
+config SYSTEM_DDR336MHZ
+	 bool "336MHz"	
+
+config SYSTEM_DDR348MHZ
+	 bool "348MHz"
+
+config SYSTEM_DDR360MHZ
+	 bool "360MHz"	 
+
+config SYSTEM_DDR372MHZ
+	 bool "372MHz"
+
+config SYSTEM_DDR384MHZ
+	 bool "384MHz"
+
+config SYSTEM_DDR396MHZ
+	 bool "396MHz"
+
+config SYSTEM_DDR402MHZ
+	 bool "402MHz"
+
+endif
+endchoice
+
+
+
+config DDR_FREQ
+	string
+	default "25" if SYSTEM_DDR25MHZ
+    default "198" if SYSTEM_DDR198MHZ
+    default "201" if SYSTEM_DDR201MHZ
+    default "312" if SYSTEM_DDR312MHZ
+    default "324" if SYSTEM_DDR324MHZ
+    default "336" if SYSTEM_DDR336MHZ
+    default "348" if SYSTEM_DDR348MHZ
+    default "360" if SYSTEM_DDR360MHZ
+    default "372" if SYSTEM_DDR372MHZ
+    default "384" if SYSTEM_DDR384MHZ
+    default "396" if SYSTEM_DDR396MHZ
+    default "402" if SYSTEM_DDR402MHZ
+    default "150"	if SYSTEM_DDR150MHZ
+####################################################
+#
+# System PLL SETTING
+#
+####################################################
+config SYSTEM_PERFORMANCE_CLK
+	int	
+	default 396000000 if SYSTEM_DDR198MHZ
+  default 402000000 if SYSTEM_DDR201MHZ
+  default 624000000 if SYSTEM_DDR312MHZ
+  default 648000000 if SYSTEM_DDR324MHZ
+  default 672000000 if SYSTEM_DDR336MHZ
+  default 696000000 if SYSTEM_DDR348MHZ
+  default 720000000 if SYSTEM_DDR360MHZ
+  default 744000000 if SYSTEM_DDR372MHZ
+  default 768000000 if SYSTEM_DDR384MHZ
+  default 792000000 if SYSTEM_DDR396MHZ
+  default 804000000 if SYSTEM_DDR402MHZ
+  default 300000000	if SYSTEM_DDR150MHZ
+  default 100000000	if SYSTEM_DDR25MHZ
+
+#config SYSTEM_PERFORMANCE_SETTING_TYPE
+#    string
+#    default "400" if SYSTEM_PERFORMANCE_SN986X0_CPU400MHZ_DDR400MHZ
+#	default "350" if SYSTEM_PERFORMANCE_SN986X0_CPU350MHZ_DDR350MHZ
+#	default "300" if SYSTEM_PERFORMANCE_SN986X0_CPU300MHZ_DDR300MHZ
+#	default "250" if SYSTEM_PERFORMANCE_SN986X0_CPU250MHZ_DDR250MHZ
+#	default "100" if SYSTEM_PERFORMANCE_SN986X0_CPU100MHZ_DDR100MHZ
+#    help
+#        Select the cpu and ddr.                                     #part of hwsetting£¨all£©another part is stead by resc
+
+
+####################################################
+#
+# DDR Configuration
+#
+####################################################
+#if SYSTEM_PLATFORM_SN98610
+#choice
+#	prompt "DDR Configuration"
+#	default SYSTEM_DDR_ESMT_128MB_32BIT_SUPPORT
+    
+#config SYSTEM_DDR_ESMT_128MB_32BIT_SUPPORT
+#	bool "ESMT 128MB 32BIT"
+
+#config SYSTEM_DDR_WINBOND_128MB_32BIT_SUPPORT
+#	bool "Winbond 128MB 32BIT"
+    
+#config SYSTEM_DDR_ETRON_128MB_32BIT_SUPPORT
+#	bool "Etron 128MB 32BIT"
+
+#endchoice
+#endif
+
+#config SYSTEM_DDR_SETTING_FILE
+#    string
+#    default "scripts/configs/ddr/esmt_1Gb_32bit.conf" if SYSTEM_DDR_ESMT_128MB_32BIT_SUPPORT && SYSTEM_PLATFORM_SN98610
+#	default "scripts/configs/ddr/winbond_1Gb_32bit.conf" if SYSTEM_DDR_WINBOND_128MB_32BIT_SUPPORT && SYSTEM_PLATFORM_SN98610
+#	default "scripts/configs/ddr/etron_1Gb_32bit.conf" if SYSTEM_DDR_ETRON_128MB_32BIT_SUPPORT && SYSTEM_PLATFORM_SN98610
+#	default "scripts/configs/ddr/winbond_1Gb_32bit.conf" if SYSTEM_PLATFORM_SN98600 || SYSTEM_PLATFORM_SN98601
+#	default "scripts/configs/ddr/winbond_1Gb_32bit.conf" if SYSTEM_PLATFORM_ST58600FPGA
+#    help
+#        Input the configuration Path here for internal use.
+
+
+####################################################
+#
+# Flash Configuration
+#
+####################################################
+choice
+	prompt "Flash Configuration"
+	default SYSTEM_NAND_FLASH_SUPPORT
+
+config SYSTEM_NAND_FLASH_SUPPORT
+	bool "NAND Flash"
+
+config SYSTEM_SERIAL_FLASH_SUPPORT
+	bool "Serial Flash"
+    
+endchoice
+
+####################################################
+#
+# NAND Flash Configuration
+#
+####################################################
+
+# Please also add nand flash setting below.
+#choice
+#	prompt "--  Model : " if SYSTEM_NAND_FLASH_SUPPORT
+#    default SYSTEM_NAND_SAMSUNG_128MB_K9F1G08U0D_SUPPORT
+
+#config SYSTEM_NAND_SAMSUNG_128MB_K9F1G08U0D_SUPPORT
+#    bool "SAMSUNG 1Gb K9F1G08U0D"
+
+#config SYSTEM_NAND_SAMSUNG_512MB_K9F4G08U0D_SUPPORT
+#    bool "SAMSUNG 4Gb K9F4G08U0D"
+
+#endchoice
+
+####################################################
+#
+# Serial Flash Configuration
+#
+####################################################
+
+#choice
+#    prompt "--  Model :" if SYSTEM_SERIAL_FLASH_SUPPORT
+#	default SYSTEM_SERIAL_MXIC_16MB_MX29LV160DTTI_SUPPORT
+
+#config SYSTEM_SERIAL_MXIC_16MB_MX29LV160DTTI_SUPPORT
+#    bool "MXIC 16MB MX29LV160DTTI-70G"
+
+#config SYSTEM_SERIAL_MXIC_32MB_MX25L3205D_SUPPORT
+#    bool "MXIC 32MB MX25L3205D"
+
+#endchoice
+
+####################################################
+#
+# Flash SETTING
+#
+####################################################
+
+#config SYSTEM_FLASH_ID
+#	string
+#	default "K9F1G08U0D" if SYSTEM_NAND_SAMSUNG_128MB_K9F1G08U0D_SUPPORT
+#	default "K9F4G08U0D" if SYSTEM_NAND_SAMSUNG_512MB_K9F4G08U0D_SUPPORT
+#	default "MX29LV160DTTI" if SYSTEM_SERIAL_MXIC_16MB_MX29LV160DTTI_SUPPORT
+#	default "MX25L3205D" if SYSTEM_SERIAL_MXIC_32MB_MX25L3205D_SUPPORT
+#	help
+#        Input flash id here for internal use.
+
+#config SYSTEM_FLASH_SETTING_FILE
+#    string
+#    default "scripts/configs/flash/samsung_1Gb_k9f1g08u0d.conf" if SYSTEM_NAND_SAMSUNG_128MB_K9F1G08U0D_SUPPORT
+#	default "scripts/configs/flash/samsung_4Gb_k9f4g08u0d.conf" if SYSTEM_NAND_SAMSUNG_512MB_K9F4G08U0D_SUPPORT
+#    default "" if SYSTEM_SERIAL_FLASH_SUPPORT
+#    help
+#        Input the configuration Path here for internal use.
+
+#config SYSTEM_FLASH_LAYOUT_FILE
+#    string
+#    default "scripts/configs/flash/nand_flashlayout_1Gb.conf" if SYSTEM_NAND_SAMSUNG_128MB_K9F1G08U0D_SUPPORT
+#	default "scripts/configs/flash/nand_flashlayout_4Gb.conf" if SYSTEM_NAND_SAMSUNG_512MB_K9F4G08U0D_SUPPORT
+#	default "scripts/configs/flash/serial_flashlayout_16mb.conf" if SYSTEM_SERIAL_MXIC_16MB_MX29LV160DTTI_SUPPORT
+#	default "scripts/configs/flash/serial_flashlayout_32mb.conf" if SYSTEM_SERIAL_MXIC_32MB_MX25L3205D_SUPPORT
+#    help
+#        Input the configuration Path here for internal use.
+
+
+#endmenu
+
+####################################################
+#
+# Source Other Kconfig
+#
+####################################################
+source "app_Kconfig"
+source "driver_Kconfig"
+
+config CUSTOM_KERNEL_SETTING
+	bool "customize kernel setting"
+	default n

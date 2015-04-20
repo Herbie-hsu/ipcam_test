@@ -1,0 +1,6 @@
+<snapshot>
+<enable>1</enable>
+<device>/dev/video1</device>
+<fps>5</fps>
+<qp>60</qp>
+</snapshot>

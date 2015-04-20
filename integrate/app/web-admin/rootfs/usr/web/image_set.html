@@ -1,0 +1,716 @@
+<link rel="stylesheet" href="/include/jquery-ui.min.css">	
+<script language="javascript" src="/include/jquery-1.10.2.min.js"> </script>
+<script language="javascript" src="/include/jquery-ui.min.js"> </script>
+<script language="JavaScript">
+var day_color="#66CCFF";	
+var night_color="#000099";
+var userdefine_color="#FFFF00";	
+var day_value=is_day;
+var night_value=is_night;
+var userdefine_value=is_userdefine;
+
+function rgbtohex(rgb) {
+	if(rgb.search("rgb")!= -1)	
+	{
+		rgb = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/); 
+		function hex(x) { 
+		return ("0" + parseInt(x).toString(16)).slice(-2); 
+	} 
+	rgb= "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);} 
+	return rgb.toUpperCase(); 
+}	
+function setAWB(auto, init){
+    if (auto) {
+        $("#sliderR").slider("disable");
+        $("#sliderG").slider("disable");
+        $("#sliderB").slider("disable");
+        $('.text_rgb').fadeTo('normal', 0.75).attr("disabled", "disabled");
+    }
+    else {
+        $("#sliderR").slider("enable");
+        $("#sliderG").slider("enable");
+        $("#sliderB").slider("enable");
+        $('.text_rgb').fadeTo('normal', 1).removeAttr("disabled", "");
+    }
+    if (init == false) //change must be excute.
+    {
+        var red = document.getElementById("r_value").value;        
+        var green = document.getElementById("g_value").value;        
+        var blue = document.getElementById("b_value").value;       
+        var awb = document.getElementById("awb");
+        data = {
+            op: "action",
+            type: "awb",
+            awb: awb.checked,
+            red: red,
+            green: green,
+            blue: blue
+        };
+        $.getJSON('/cgi-bin/imagesetting.cgi?t=' + new Date(), data, null);
+    }
+}
+function setAE(auto, init)
+{
+	if(auto)
+	{
+		$("#sliderExposure").slider("disable");
+		$('.text_exposure').fadeTo('normal', 0.75).attr("disabled","disabled");			
+	}
+	else
+	{
+		$("#sliderExposure").slider("enable");
+		$('.text_exposure').fadeTo('normal', 1).removeAttr("disabled","");		
+	}
+	if(init == false) //change must be excute.
+	{
+		var ae_status=document.getElementById("ae_status");
+		var exposure=$("#sliderExposure").slider("value");
+		data = {op:"action", type:"ae_status", ae_status:ae_status.checked, exposure:exposure};	
+		$.getJSON('/cgi-bin/imagesetting.cgi?t=' + new Date() , data, null);			
+	}		
+}	
+function setExposureControl(value, init)
+{
+	//alert( $("#sliderExposure").slider("value")+"/"+(parseInt($("#exposure_control").val())*2));
+	$("#exposure").val( $("#sliderExposure").slider("value")+"/"+(parseInt($("#exposure_control").val())*2));	
+	$("#exposure_min").text((parseInt($("#exposure_control").val())*2).toString());
+	$("#exposure_max").text((parseInt($("#exposure_control").val())*2).toString());	
+	if(init == false) //change must be excute.
+	{
+		var ae_status=document.getElementById("ae_status");
+		var exposure=$("#sliderExposure").slider("value");
+		data = {op:"action", type:"exposure_control", exposure_control:value, ae_status:ae_status.checked, exposure:exposure};	
+		$.getJSON('/cgi-bin/imagesetting.cgi?t=' + new Date() , data, null);			
+	}		
+}
+$(function(){
+//slider red
+    $("#sliderR").slider({
+        range: "min",
+        value: 0,
+        min: 0,
+        max: 255,      
+        slide: function(event, ui){
+            $("#r_value").val(ui.value);
+        },
+        stop: function(event, ui){
+		setRed();
+        }
+    });
+	$("#sliderR").slider("value", is_red);	
+	
+//slider green
+    $("#sliderG").slider({
+        range: "min",
+        value: 0,
+        min: 0,
+        max: 255,
+        slide: function(event, ui){
+            $("#g_value").val(ui.value);
+        },
+        stop: function(event, ui){
+		setGreen();
+        }       
+    });
+	$("#sliderG").slider("value", is_green);	
+	
+//slider blue
+    $("#sliderB").slider({
+        range: "min",
+        value: 0,
+        min: 0,
+        max: 255,
+        slide: function(event, ui){
+            $("#b_value").val(ui.value);
+        },
+        stop: function(event, ui){
+		setBlue();
+        }    
+    });
+	$("#sliderB").slider("value", is_blue);	
+	
+//slider contrast
+    $("#sliderConstrast").slider({
+        range: "min",
+        value: 0,
+        min: 0,
+        max: 64,
+        slide: function(event, ui){
+            $("#contrast").val(ui.value);
+        },
+        stop: function(event, ui){
+		setContrast();
+        }   
+    });
+	$("#sliderConstrast").slider("value", is_contrast);	
+	
+//slider sharpness
+    $("#sliderSharpness").slider({
+        range: "min",
+        value: 0,
+        min: 0,
+        max: 6,
+        slide: function(event, ui){
+            $("#sharpness").val(ui.value);
+        },
+        stop: function(event, ui){
+		setSharpness();
+        } 
+    });
+	$("#sliderSharpness").slider("value", is_sharpness);	
+		
+//slider saturation
+    $("#sliderSaturation").slider({
+        range: "min",
+        value: 0,
+        min: 0,
+        max: 127,
+        slide: function(event, ui){
+            $("#saturation").val(ui.value);
+        },
+        stop: function(event, ui){
+		setSaturation();
+        } 
+    });
+	$("#sliderSaturation").slider("value", is_saturation);	
+		
+//slider brightness	
+    $("#sliderBrightness").slider({
+        range: "min",
+        value: 0,
+        min: 0,
+        max: 127,
+        slide: function(event, ui){
+            $("#brightness_value").val(ui.value);
+        },
+        stop: function(event, ui){
+		setBrightness();
+        } 
+    });
+	$("#sliderBrightness").slider("value", is_brightness);
+	
+//slider hue
+    $("#sliderHue").slider({
+        range: "min",
+        value: 0,
+        min: 0,
+        max: 359,
+        slide: function(event, ui){
+            $("#hue_value").val(ui.value);		
+        },
+        stop: function(event, ui){
+		setHue();
+        }
+    });
+	$("#sliderHue").slider("value", is_hue);	
+	
+//slider drc	
+    $("#sliderDRC").slider({
+        range: "min",
+        value: 0,
+        min: 1,
+        max: 16,
+        slide: function(event, ui){
+            $("#drc_value").val(ui.value);
+        },
+        stop: function(event, ui){
+		setDRCValue();
+        }
+    });
+	$("#sliderDRC").slider("value", is_drc_value);	
+	
+//slider exposure	
+    $("#sliderExposure").slider({
+        range: "min",
+        value: 0,
+        min: 1,
+        max: 16,
+        slide: function(event, ui){
+            $("#exposure").val(ui.value+"/"+(parseInt($("#exposure_control").val())*2));
+        },
+        stop: function(event, ui){
+		setExposureValue();
+        }
+    });
+	$("#sliderExposure").slider("value", is_exposure);		
+		
+	$('.text_style').fadeTo('fast', 0.75).attr("disabled","disabled");		
+	
+    $(".hour").each(function(){
+        $(this).click(function(){
+            var id = $(this).attr("id");
+			var data={"background-color":rgbtohex($("#tip").css("background-color"))};
+		    $(this).css(data);	
+			day_value="";
+			night_value="";
+			userdefine_value="";
+			for( var i=0;i<24;i++)
+			{
+				if(rgbtohex($("#d"+i).css("background-color")) == day_color)
+					day_value=day_value + i.toString()+",";
+				if(rgbtohex($("#d"+i).css("background-color")) == night_color)
+					night_value=night_value + i.toString()+",";
+				if(rgbtohex($("#d"+i).css("background-color")) == userdefine_color)
+					userdefine_value=userdefine_value + i.toString()+",";										
+			}
+			day_value=day_value.slice(0,-1);
+			night_value=night_value.slice(0,-1);
+			userdefine_value=userdefine_value.slice(0,-1);
+			//alert("d="+day_value+"n"+night_value+"u"+userdefine_value);
+        })
+    });
+	
+/*	$(window).unload(function(){
+		var data = {op:"action", type:"unload"};	
+		$.getJSON('/cgi-bin/imagesetting.cgi?t=' + new Date() , data, null);			
+	});
+*/	
+});
+function setMirFlip()
+{
+	var flip,mirror;
+	mirror=document.getElementById("sensor_mirror");
+	flip=document.getElementById("sensor_flip");	
+	data = {op:"action", type:"mirflip", mirror:mirror.checked, flip:flip.checked};	
+	$.getJSON('/cgi-bin/imagesetting.cgi?t=' + new Date() , data, null);
+}
+
+function setDRC(){
+    var drc_status;
+	drc_status = document.getElementById("sensor_drc");	
+	data = {op:"action", type:"drc_status", drc_status:drc_status.checked};	
+	$.getJSON('/cgi-bin/imagesetting.cgi?t=' + new Date() , data, null);		
+}
+
+function setHue(){
+    var hue;
+    hue = document.getElementById("hue_value").value;
+	data = {op:"action", type:"hue", hue:hue};	
+	$.getJSON('/cgi-bin/imagesetting.cgi?t=' + new Date() , data, null);		
+}
+
+function setDRCValue(){
+    var drc_value;
+    drc_value = document.getElementById("drc_value").value;
+	data = {op:"action", type:"drc_value", drc_value:drc_value};	
+	$.getJSON('/cgi-bin/imagesetting.cgi?t=' + new Date() , data, null);		
+}
+
+function setBrightness(){
+    var brightness;
+    brightness = document.getElementById("brightness_value").value;
+	data = {op:"action", type:"brightness", brightness:brightness};	
+	$.getJSON('/cgi-bin/imagesetting.cgi?t=' + new Date() , data, null);			
+}
+
+function setSaturation(){
+    var saturation;
+    saturation = document.getElementById("saturation").value;
+	data = {op:"action", type:"saturation", saturation:saturation};	
+	$.getJSON('/cgi-bin/imagesetting.cgi?t=' + new Date() , data, null);			
+}
+
+function setSharpness(){
+    var sharpness;
+    sharpness = document.getElementById("sharpness").value;
+	data = {op:"action", type:"sharpness", sharpness:sharpness};	
+	$.getJSON('/cgi-bin/imagesetting.cgi?t=' + new Date() , data, null);			
+}
+
+function setContrast(){
+    var contrast;
+    contrast = document.getElementById("contrast").value;
+	data = {op:"action", type:"contrast", contrast:contrast};	
+	$.getJSON('/cgi-bin/imagesetting.cgi?t=' + new Date() , data, null);			
+}
+
+function setRed(){
+    var red;
+    red = document.getElementById("r_value").value;
+	data = {op:"action", type:"red", red:red};	
+	$.getJSON('/cgi-bin/imagesetting.cgi?t=' + new Date() , data, null);			
+}
+
+function setGreen(){
+    var green;
+    green = document.getElementById("g_value").value;
+	data = {op:"action", type:"green", green:green};	
+	$.getJSON('/cgi-bin/imagesetting.cgi?t=' + new Date() , data, null);			
+}
+
+function setBlue(){
+    var blue;
+    blue = document.getElementById("b_value").value;
+	data = {op:"action", type:"blue", blue:blue};	
+	$.getJSON('/cgi-bin/imagesetting.cgi?t=' + new Date() , data, null);			
+}
+function setExposureValue()
+{
+    var exposure;
+    exposure = document.getElementById("exposure").value;
+	data = {op:"action", type:"exposure", exposure:exposure};	
+	$.getJSON('/cgi-bin/imagesetting.cgi?t=' + new Date() , data, null);		
+}
+function profile_change(value)
+{
+	var profile_color;	
+	if(value == "0")
+		profile_color=day_color;
+	if(value == "1")
+		profile_color=night_color;	
+	if(value == "2")
+		profile_color=userdefine_color;	
+	var data={"background-color":profile_color};
+    $("#tip").css(data);	
+
+	var data = {op:"action", type:"profile_change", profile:value};	
+	$.getJSON('/cgi-bin/imagesetting.cgi?t=' + new Date() , data, processData);
+	function processData(data, status)
+	{
+		is_mirror=data.mirror;
+		is_flip=data.flip;	
+		is_contrast=data.contrast;
+		is_sharpness=data.sharpness;	
+		is_saturation=data.saturation;
+		is_drc_status=data.drc_status;	
+		is_drc_value=data.drc_value;
+		is_hue=data.hue;	
+		is_brightness=data.brightness;
+		is_red=data.red;	
+		is_green=data.green;
+		is_blue=data.blue;	
+		is_awb=data.awb;
+		is_exposure=data.exposure;
+		is_ae_status=data.ae_status;
+		is_exposure_control=data.exposure_control;
+		//alert(is_mirror +":" +is_flip +":"+is_contrast +":"+is_sharpness +":"+is_saturation +":"+is_drc_status +":"+is_drc_value +":"+is_hue +":"+is_brightness +":"+is_red +":"+is_green +":"+is_blue +":"+is_awb);		
+		below_page_init();
+	}
+}
+function profile_init()
+{
+	var profile_color;	
+	if((","+is_day+",").search(","+is_hour+",") != -1)
+	{
+		profile_color=day_color;		
+        $("#profile_select").val("0");
+	}
+	if((","+is_night+",").search(","+is_hour+",") != -1)
+	{
+		profile_color=night_color;
+		$("#profile_select").val("1");
+	}
+	if((","+is_userdefine+",").search(","+is_hour+",") != -1)
+	{
+		profile_color=userdefine_color;
+		$("#profile_select").val("2");		
+	}		
+	var data={"background-color":profile_color};
+    $("#tip").css(data);
+}
+function hours_page_init()
+{  
+	var array = is_day.split(",");
+	for (var i=0 ; i < array.length ; i++)
+	{   
+		var data={"background-color":day_color};		
+		$("#d"+array[i]).css(data);
+	}	
+
+	var array = is_night.split(",");
+	for (var i=0 ; i < array.length ; i++)
+	{   
+		var data={"background-color":night_color};		
+		$("#d"+array[i]).css(data);
+	}
+	
+	var array = is_userdefine.split(",");
+	for (var i=0 ; i < array.length ; i++)
+	{   
+		var data={"background-color":userdefine_color};		
+		$("#d"+array[i]).css(data);
+	}		
+}  
+ function below_page_init()
+ {  
+	//alert("below_page_init!");
+	document.getElementById("sensor_mirror").checked=is_mirror;
+	document.getElementById("sensor_flip").checked=is_flip;
+	document.getElementById("sensor_drc").checked=is_drc_status;
+	document.getElementById("drc_value").value=is_drc_value;
+	$("#sliderDRC").slider("value", is_drc_value);
+	document.getElementById("contrast").value=is_contrast;
+	$("#sliderConstrast").slider("value", is_contrast);
+	document.getElementById("sharpness").value=is_sharpness;
+	$("#sliderSharpness").slider("value", is_sharpness);
+	document.getElementById("saturation").value=is_saturation;
+	$("#sliderSaturation").slider("value", is_saturation);
+	document.getElementById("brightness_value").value=is_brightness;
+	$("#sliderBrightness").slider("value", is_brightness);
+	document.getElementById("hue_value").value=is_hue;
+	$("#sliderHue").slider("value", is_hue);
+	document.getElementById("awb").checked=is_awb;
+	setAWB(is_awb, true);
+	document.getElementById("r_value").value=is_red;
+	$("#sliderR").slider("value", is_red);
+	document.getElementById("g_value").value=is_green;
+	$("#sliderG").slider("value", is_green);
+	document.getElementById("b_value").value=is_blue;
+	$("#sliderB").slider("value", is_blue);
+	document.getElementById("ae_status").checked=is_ae_status;	
+	setAE(is_ae_status, true);
+	document.getElementById("exposure").value=is_exposure;
+	$("#sliderExposure").slider("value", is_exposure);		
+	document.getElementById("exposure_control").value=is_exposure_control;
+	//alert("function setexposurecontrol will be execute!" + is_exposure_control);
+	setExposureControl(is_exposure_control, true);	
+ }  	
+function image_init(){  
+	vlc_init(); 
+	profile_init(); 
+	hours_page_init();
+	below_page_init();
+}  
+function update_value()
+{
+	is_day=day_value;
+	is_night=night_value;
+	is_userdefine=userdefine_value;
+	is_mirror=document.getElementById("sensor_mirror").checked;
+ 	is_flip=document.getElementById("sensor_flip").checked;
+ 	is_contrast=document.getElementById("contrast").value;
+ 	is_sharpness=document.getElementById("sharpness").value;
+	is_saturation=document.getElementById("saturation").value;
+	is_drc_status=document.getElementById("sensor_drc").checked;
+	is_drc_value=document.getElementById("drc_value").value;
+	is_hue=document.getElementById("hue_value").value;
+	is_brightness=document.getElementById("brightness_value").value;
+	is_red=document.getElementById("r_value").value;
+	is_green=document.getElementById("g_value").value;
+	is_blue=document.getElementById("b_value").value;
+	is_awb=document.getElementById("awb").checked;
+	is_exposure=$("#sliderExposure").slider("value");	
+	is_ae_status=document.getElementById("ae_status").checked;	
+	is_exposure_control=document.getElementById("exposure_control").value;		
+}
+function image_save()
+{
+	var cmdurl, flip, mirror, contrast, sharpness, saturation, red, green, blue, awb, drc_status, drc_value, hue, brightness ,ae_status, exposure, exposure_control;
+	var profile;
+	
+	profile = document.getElementById("profile_select").value;
+	hue = document.getElementById("hue_value").value;
+    brightness = document.getElementById("brightness_value").value;
+	drc_status = document.getElementById("sensor_drc")
+	drc_value = document.getElementById("drc_value").value;
+	mirror=document.getElementById("sensor_mirror");
+	flip=document.getElementById("sensor_flip");
+	contrast=document.getElementById('contrast').value;
+	sharpness=document.getElementById('sharpness').value;
+	saturation=document.getElementById('saturation').value;
+	red=document.getElementById("r_value").value;
+	green=document.getElementById("g_value").value;
+	blue=document.getElementById("b_value").value;
+	awb=document.getElementById("awb");	
+	ae_status=document.getElementById("ae_status");
+	exposure=$("#sliderExposure").slider("value");	
+	exposure_control=document.getElementById("exposure_control").value;	
+	cmdurl="/cgi-bin/imagesetting.cgi?op=action"+"&type="+"save"+"&profile="+profile+"&day="+day_value+"&night="+night_value+"&userdefine="+userdefine_value+"&mirror="+mirror.checked+"&flip="+flip.checked+"&contrast="+contrast+"&sharpness="+sharpness+"&saturation="+saturation+
+	"&drc_status="+drc_status.checked +"&drc_value="+drc_value+"&hue="+hue+"&brightness="+brightness+"&red="+red+"&green="+green+"&blue="+blue+"&awb="+awb.checked+"&exposure="+exposure+"&ae_status="+ae_status.checked+"&exposure_control="+exposure_control+"&time="+new Date().toString();
+	//alert(cmdurl);
+	document.getElementById("hiddenframe_image").src = cmdurl;
+	update_value();
+}
+function rst()
+{
+	hours_page_init();
+	below_page_init();
+	image_save();
+}
+function call_img_cgi()
+{
+//	var data = {op:"action", type:"unload"};	
+//	$.getJSON('/cgi-bin/imagesetting.cgi?t=' + new Date() , data, null);	
+	//alert("unload");	
+	cmdurl="/cgi-bin/imagesetting.cgi?op=action"+"&type="+"unload"+"&time="+new Date().toString();
+	document.getElementById("hiddenframe_image").src = cmdurl;
+}
+window.onunload=call_img_cgi;
+</script>
+<HTML><HEAD>	<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8"><TITLE></TITLE>
+<META HTTP-EQUIV="Expires" CONTENT="now"><META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+<SCRIPT SRC="/include/help.js"></SCRIPT>
+<script language="javascript" src="/include/VLCobject.js"> </script>
+<script language="javascript" src="/include/VLCcontrols.js"> </script>
+<script language="javascript" src="/include/whereisaxvlc.js"> </script>
+    <style type="text/css" media="all" title="Default"> 
+      @import "/include/slider_nev.css";
+    </style>
+<script type="text/javascript" src="/include/slider_extras_nev.js"></script>
+</HEAD><LINK href="/nb.css" rel=stylesheet type=text/css>
+<style>
+	#tip{
+		position:relative;
+		width:22px;
+		height:22px;
+		background-color:#FF0000;
+		float:left;
+		border:solid 1px #000000		
+	}
+	#d0.hour{
+		position:relative;
+		width:22px;
+		height:22px;
+		background-color:#FF0000;
+		float:left;
+		clear:left;
+		border:solid 1px #000000
+	}	
+	.hour{
+		position:relative;
+		width:22px;
+		height:22px;
+		background-color:#FF0000;
+		float:left;
+		border-top:solid 1px #000000;
+		border-right:solid 1px #000000;
+		border-bottom:solid 1px #000000;
+	}
+	#left.time{
+		position:relative;
+		width:172px;
+		height:22px;
+		float:left;
+		left:-11px;
+	}
+	#center.time{
+		position:relative;
+		width:172px;
+		height:22px;
+		float:left;
+		text-align:center;
+	}	
+	#right.time{
+		position:relative;
+		width:172px;
+		height:22px;
+		float:left;
+		clear:right;
+		text-align:right;
+		right:-22px;
+	}
+	.sliderstyle
+	{
+		width:160px;
+		float:left;
+	}
+	.text_style
+	{
+		width:44px;
+	}							
+</style>
+</HEAD>
+<BODY onload=image_init()><CENTER>
+	<TABLE border=0 cellPadding=0 cellSpacing=0 width=602><TBODY>
+		<TR><TD align=left class=title vAlign=center width=595><script>dw(IS_IMAGE_SETTING)</script></TD></TR>
+		<TR><TD colSpan=2>
+			<TABLE border=0 cellPadding=0 cellSpacing=0  width=602><TBODY>
+				<TR><TD class=vline rowSpan=15><BR></TD><TD width=600>
+				<TABLE align=center id="preview_table" name="preview_table" border="0" align="center" cellpadding="" cellspacing="5">
+				<tr>
+					<td>
+<div id="tip"></div>
+<div><select id="profile_select" onchange="profile_change(this.value);">
+		<option value="0">Day</option>
+		<option value="1">Night</option>
+		<option value="2">User Define</option>
+	</select>
+</div>
+	<div id="left" class="time">0:00</div>
+	<div id="center" class="time">12:00</div>
+	<div id="right" class="time">24:00</div>
+<div>	
+	<div id="d0" class="hour"></div>
+	<div id="d1" class="hour"></div>
+	<div id="d2" class="hour"></div>
+	<div id="d3" class="hour"></div>
+	<div id="d4" class="hour"></div>
+	<div id="d5" class="hour"></div>
+	<div id="d6" class="hour"></div>
+	<div id="d7" class="hour"></div>
+	
+	<div id="d8" class="hour"></div>
+	<div id="d9" class="hour"></div>
+	<div id="d10" class="hour"></div>
+	<div id="d11" class="hour"></div>
+	<div id="d12" class="hour"></div>
+	<div id="d13" class="hour"></div>
+	<div id="d14" class="hour"></div>
+	<div id="d15" class="hour"></div>
+	
+	<div id="d16" class="hour"></div>
+	<div id="d17" class="hour"></div>
+	<div id="d18" class="hour"></div>
+	<div id="d19" class="hour"></div>
+	<div id="d20" class="hour"></div>
+	<div id="d21" class="hour"></div>
+	<div id="d22" class="hour"></div>
+	<div id="d23" class="hour"></div>
+</div>	
+					</td>	
+				</tr>
+				<tr>	
+					<td align="center" valign="top">
+					<script>WidthHeight = ' width="400" height="300" ';
+						AxvlcObject = ObjectBegin + AxvlcURL + AxvlcCab + WidthHeight +CloseAngle + EmbedBegin + WidthHeight + EmbedEnd +ObjectEnd;
+					document.write(AxvlcObject);</script>
+					&nbsp;<img src="/axis_fullscreen.PNG" width="28" height="28"  onmouseenter="this.src='/axis_fullscreen_over.png';" onmouseleave="this.src='/axis_fullscreen.PNG';"   onmousedown="this.src='/axis_fullscreen_deep.png';" onmouseup="this.src='/axis_fullscreen.PNG';" onclick='vlc_fullscreen();' title="fullscreen" alt="fullscreen button">
+					</td>
+				</tr>
+				</TABLE>	
+		
+				<TABLE align=center id="osd_table" name="osd_table" border="0" align="center" cellpadding="0" cellspacing="5"  class=space width=500>
+	<col align="left" valign="center" width=140px;/>
+	<col align="left" valign="center" width=210px;/>
+	<col align="left" valign="center" width=150px;/>
+	<iframe id="hiddenframe_image" width="0" height="0" src="" style="display:none;"></iframe>
+<tr><td><script>dw(IS_MIRROR);</script><input type="checkbox" id="sensor_mirror" onclick="setMirFlip()"></td>
+	<td><script>dw(IS_FLIP);</script><input type="checkbox" id="sensor_flip" onclick="setMirFlip()"></td><td>&nbsp;</td></tr>			
+	<tr><td><script>dw(IS_DRC);</script><input type="checkbox" id="sensor_drc" onclick="setDRC()"></td><td>&nbsp;</td><td>&nbsp;</td></tr>
+	<tr><td><script>dw(IS_DRC_VALUE);</script></td><td><span id="sliderDRC" class="sliderstyle"></span></td><td><input id="drc_value" type="text" class="text_style"/>[1..16]</td></tr>	
+	<tr><td><script>dw(IS_CONTRAST)</script></td><td><span id="sliderConstrast" class="sliderstyle"></span></td><td><input id="contrast" type="text" class="text_style"/>[0..64]</td></tr>
+	<tr><td><script>dw(IS_SHARPNESS)</script></td><td><span id="sliderSharpness" class="sliderstyle"></span></td><td><input id="sharpness" type="text" class="text_style"/>[0..6]</td></tr>
+	<tr><td><script>dw(IS_SATURATION)</script></td><td><span id="sliderSaturation" class="sliderstyle"></span></td><td><input id="saturation" type="text" class="text_style"/>[0..127]</td></tr>
+	<tr><td><script>dw(IS_BRIGHTNESS);</script></td><td><span id="sliderBrightness" class="sliderstyle"></span></td><td><input id="brightness_value" type="text" class="text_style"/>[0..127]</td></tr>
+	<tr><td><script>dw(IS_HUE_VALUE);</script></td><td><span id="sliderHue" class="sliderstyle"></span></td><td><input id="hue_value" type="text" class="text_style"/>[0..359]</td></tr>
+	<tr><td><script>dw(IS_AWB);</script><input type="checkbox" id="awb" onclick="setAWB(this.checked, false)"></td><td>&nbsp;</td><td>&nbsp;</td></tr>
+	<tr><td><span class="text_rgb"><script>dw(IS_R_VALUE);</script></span></td><td><span id="sliderR" class="sliderstyle"></span></td><td><input id="r_value" type="text" class="text_style"/>[0..255]</td></tr>
+	<tr><td><span class="text_rgb"><script>dw(IS_G_VALUE);</script></span></td><td><span id="sliderG" class="sliderstyle"></span></td><td><input id="g_value" type="text" class="text_style"/>[0..255]</td></tr>	
+	<tr><td><span class="text_rgb"><script>dw(IS_B_VALUE);</script><span></td><td><span id="sliderB" class="sliderstyle"></span></td><td><input id="b_value" type="text" class="text_style"/>[0..255]</td></tr>	
+	<tr><td><script>dw(IS_AE_STATUS);</script><input type="checkbox" id="ae_status" onclick="setAE(this.checked, false)"></td><td>&nbsp;</td><td>&nbsp;</td></tr>
+	<tr><td><span class="text_exposure"><script>dw(IS_EXPOSURE);</script><span></td><td><span id="sliderExposure" class="sliderstyle"></span></td><td><input id="exposure" type="text" class="text_style"/>[1/<span id="exposure_min">100</span>..16/<span id="exposure_max">100</span>]<script>dw(IS_EXPOSURE_TIME_UNIT);</script></td></tr>		
+	<tr><td><script>dw(IS_EXPOSURE_CONTROL);</script></td><td>
+	    <select id="exposure_control" name="exposure_control" style="width:80px;" onchange="setExposureControl(this.value, false)">
+	    	<option id="50" value="50">50Hz</option>
+	    	<option id="60" value="60">60Hz</option>
+		</select>
+	</td><td>&nbsp;</td></tr>
+	<tr><td colspan="3" align="center"><hr></td></tr>
+	<tr><td colspan="3" align="center"><input id="save" style="width:70px" type="submit" value="Save" onclick="image_save()">
+			<input id="reset" type="button" style="width:70px" value="Reset" onclick="rst();"></td></tr>
+			<script>DV("save",OS_SAVE);DV("reset",OS_RESET);</script>
+
+		
+
+						</TABLE>
+
+				</TD><TD class=vline rowSpan=15><BR></TD></TR>
+				<TR><TD class=hline></TD></TR>
+
+			</TBODY></TABLE>
+
+		</TD></TR>
+	</TBODY></TABLE>
+</CENTER></BODY>
+</HTML>
+
