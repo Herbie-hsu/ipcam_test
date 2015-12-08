@@ -1,3 +1,0 @@
-SONIX IP Camera
-_http._tcp
-80

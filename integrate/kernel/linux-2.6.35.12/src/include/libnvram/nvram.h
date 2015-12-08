@@ -1,1 +1,0 @@
-/home/herbie_hsu/sonix/integrate/buildscript/include/libnvram/nvram.h

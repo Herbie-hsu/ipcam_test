@@ -1,1 +1,0 @@
-cmd_networking/lib.a := rm -f networking/lib.a; arm-linux-ar  rcs networking/lib.a networking/hostname.o networking/ifconfig.o networking/inetd.o networking/interface.o networking/ntpd.o networking/ping.o networking/route.o networking/wget.o
